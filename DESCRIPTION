@@ -1,0 +1,16 @@
+Package: JTK
+Title: Identify Data with Rhythms Using JTK Algorithm 
+Version: 0.0.1
+Authors@R: 
+    person(given = "Weiyang",
+           family = "Tao",
+           role = c("aut", "cre"),
+           email = "weiyangtao1513@gmail.com")
+Description: This is a non-parametric algorithm for detecting rhythmic 
+    components in genome-scale datasets.
+License: GPL-3
+Encoding: UTF-8
+LazyData: false
+RoxygenNote: 7.1.0
+Imports: 
+    ggplot2
