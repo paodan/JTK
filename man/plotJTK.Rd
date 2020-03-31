@@ -2,9 +2,9 @@
 % Please edit documentation in R/wraper.R
 \name{plotJTK}
 \alias{plotJTK}
-\title{Fit a cosine curve for rhythmic data}
+\title{plot fitted curve with cosine function for rhythmic data}
 \usage{
-plotJTK(expr, Time, n = 6, periodHours = seq(1, 60, by = 0.5))
+plotJTK(expr, Time, n = 6, periodHours = seq(1, 60, by = 0.5), lag = 0)
 }
 \arguments{
 \item{expr}{numeric vector, expression of a gene/protein}
@@ -14,19 +14,24 @@ plotJTK(expr, Time, n = 6, periodHours = seq(1, 60, by = 0.5))
 \item{n}{number of best fitted plots using different periods.}
 
 \item{periodHours}{numeric vector, fit cosine curve (time unit)}
+
+\item{lag}{the lag of cos function, default is 0}
 }
 \value{
 a ggplot object of cosine curves with different periods.
 }
 \description{
-Fit a cosine curve for rhythmic data
+Fit data with the following function:
+y = Acos(2*pi*t/p + B) + C,\cr
+where A is amplitude, p is period, B is lag, C is shift on y axis.
 }
 \examples{
 time = seq(1, 72, by = 3)
 set.seed(123)
-expr1 = 2 + 3 * cos(time/(6) - 4) + rnorm(length(time), 0, 0.2)
-expr2 = 3 + 2 * cos(time/(3) - 3) + rnorm(length(time), 0, 0.2)
-expr3 = 3 + 2 * cos(time/(6) - 3) + rnorm(length(time), 0, 2)
+
+expr1 = 3 * cos(2*pi*time/18 + 6) + rnorm(length(time), 2, 0.2)
+expr2 = 2 * cos(2*pi*time/12 + 8) + rnorm(length(time), 3, 0.2)
+expr3 = 2 * cos(2*pi*time/24 + 12) + rnorm(length(time), 3, 1)
 plot(expr3, col = "black", ylim = c(-1, 8))
 lines(expr3, col = "black")
 points(expr2, col = "blue")
@@ -37,8 +42,16 @@ lines(expr1, col = "red")
 data = as.data.frame(rbind(expr1, expr2, expr3))
 
 result = JTK(data, timepoints = 24, periods = 2:24, interval = 3)
-plotJTK(as.numeric(result[1, 6:ncol(result)]), time)
-plotJTK(as.numeric(result[1, 6:ncol(result)]), time, 1, 42)
-plotJTK(as.numeric(result[2, 6:ncol(result)]), time)
-plotJTK(as.numeric(result[3, 6:ncol(result)]), time)
+result
+
+plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time)
+plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18)
+plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18, lag = 6)
+plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time)
+plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12)
+plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12, lag = 8)
+
+plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time)
+plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24)
+plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24, lag = 12)
 }

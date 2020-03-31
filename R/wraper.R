@@ -59,21 +59,27 @@ JTK = function(data, timepoints, reps=1, normal=FALSE, alt=FALSE,
   return(results)
 }
 
-#' Fit a cosine curve for rhythmic data
+#' plot fitted curve with cosine function for rhythmic data
+#'
+#' Fit data with the following function:
+#' y = Acos(2*pi*t/p + B) + C,\cr
+#' where A is amplitude, p is period, B is lag, C is shift on y axis.
 #'
 #' @param expr numeric vector, expression of a gene/protein
 #' @param Time numeric vector, all time points (time unit)
 #' @param n number of best fitted plots using different periods.
 #' @param periodHours numeric vector, fit cosine curve (time unit)
+#' @param lag the lag of cos function, default is 0
 #' @return a ggplot object of cosine curves with different periods.
 #' @import ggplot2
 #' @export
 #' @examples
 #' time = seq(1, 72, by = 3)
 #' set.seed(123)
-#' expr1 = 2 + 3 * cos(time/(6) - 4) + rnorm(length(time), 0, 0.2)
-#' expr2 = 3 + 2 * cos(time/(3) - 3) + rnorm(length(time), 0, 0.2)
-#' expr3 = 3 + 2 * cos(time/(6) - 3) + rnorm(length(time), 0, 2)
+#'
+#' expr1 = 3 * cos(2*pi*time/18 + 6) + rnorm(length(time), 2, 0.2)
+#' expr2 = 2 * cos(2*pi*time/12 + 8) + rnorm(length(time), 3, 0.2)
+#' expr3 = 2 * cos(2*pi*time/24 + 12) + rnorm(length(time), 3, 1)
 #' plot(expr3, col = "black", ylim = c(-1, 8))
 #' lines(expr3, col = "black")
 #' points(expr2, col = "blue")
@@ -84,15 +90,27 @@ JTK = function(data, timepoints, reps=1, normal=FALSE, alt=FALSE,
 #' data = as.data.frame(rbind(expr1, expr2, expr3))
 #'
 #' result = JTK(data, timepoints = 24, periods = 2:24, interval = 3)
-#' plotJTK(as.numeric(result[1, 6:ncol(result)]), time)
-#' plotJTK(as.numeric(result[1, 6:ncol(result)]), time, 1, 42)
-#' plotJTK(as.numeric(result[2, 6:ncol(result)]), time)
-#' plotJTK(as.numeric(result[3, 6:ncol(result)]), time)
+#' result
+#'
+#' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time)
+#' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18)
+#' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18, lag = 6)
+
+#' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time)
+#' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12)
+#' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12, lag = 8)
+#'
+#' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time)
+#' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24)
+#' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24, lag = 12)
 plotJTK = function(expr, Time, n = 6,
-                   periodHours = seq(1, 60, by = 0.5)){
+                   periodHours = seq(1, 60, by = 0.5),
+                   lag = 0){
+  stopifnot(is.numeric(lag))
+  if (length(lag) != 1) stop("The length of lag must be 1.")
   fitData = data.frame(expr = expr, Time = Time)
   re = vapply(setNames(periodHours, periodHours), function(mi){
-    formula = expr ~ cos(2*pi*Time/mi)
+    formula = expr ~ cos(2*pi*Time/mi + lag)
     fit.lm <- lm(formula, data = fitData)
     fit <- fitted(fit.lm)
     sum(fit.lm$residuals^2)
@@ -103,7 +121,7 @@ plotJTK = function(expr, Time, n = 6,
   predData = lapply(setNames(as.numeric(names(sort(re)))[seq_len(n)],
                              names(sort(re))[seq_len(n)]),
                     function(mi){
-                      formula = expr ~ cos(2*pi*Time/mi)
+                      formula = expr ~ cos(2*pi*Time/mi + lag)
                       fit.lm <- lm(formula, data = fitData)
                       # find predictions for original time series
                       pred <- predict(fit.lm, newdata=data.frame(Time = timeMany),
@@ -112,11 +130,15 @@ plotJTK = function(expr, Time, n = 6,
                       return(data.frame(Time = timeMany, pred, mi = mi))
                     })
   predData = do.call("rbind", predData)
+  predData$mi = factor(predData$mi, levels = unique(predData$mi))
 
   ggplot(predData, aes(Time, expr))+
     geom_point(data = fitData)+
     geom_line()+
     facet_wrap(~mi, nrow = 3)+
     geom_ribbon(mapping = aes(ymin = lwr, ymax = upr),
-                fill = "blue", alpha = 0.3)
+                fill = "blue", alpha = 0.3)+
+    ggtitle(paste0("lag = ", lag))+
+    theme(plot.title = element_text(face = "bold", size = rel(1.2), hjust = 0.5))
 }
+
