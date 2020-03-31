@@ -18,7 +18,10 @@ plotJTK(expr, Time, n = 6, periodHours = seq(1, 60, by = 0.5), lag = 0)
 \item{lag}{the lag of cos function, default is 0}
 }
 \value{
-a ggplot object of cosine curves with different periods.
+a ggplot object of cosine curves with different periods, which are
+shown on top of each panel ("period="). The "se=" means sum of squared
+residule of the curve. The smaller the se value is the better the fitted
+curve is.
 }
 \description{
 Fit data with the following function:
@@ -46,12 +49,15 @@ result
 
 plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time)
 plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18)
+plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, lag = 6)
 plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18, lag = 6)
 plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time)
 plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12)
+plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12, lag = 9)
 plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12, lag = 8)
 
 plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time)
 plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24)
+plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 27, lag = 25.5)
 plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24, lag = 12)
 }

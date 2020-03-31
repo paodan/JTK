@@ -70,7 +70,10 @@ JTK = function(data, timepoints, reps=1, normal=FALSE, alt=FALSE,
 #' @param n number of best fitted plots using different periods.
 #' @param periodHours numeric vector, fit cosine curve (time unit)
 #' @param lag the lag of cos function, default is 0
-#' @return a ggplot object of cosine curves with different periods.
+#' @return a ggplot object of cosine curves with different periods, which are
+#' shown on top of each panel ("period="). The "se=" means sum of squared
+#' residule of the curve. The smaller the se value is the better the fitted
+#' curve is.
 #' @import ggplot2
 #' @export
 #' @examples
@@ -94,14 +97,17 @@ JTK = function(data, timepoints, reps=1, normal=FALSE, alt=FALSE,
 #'
 #' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time)
 #' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18)
+#' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, lag = 6)
 #' plotJTK(as.numeric(result["expr1", 6:ncol(result)]), time, n = 1, periodHours = 18, lag = 6)
 
 #' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time)
 #' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12)
+#' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12, lag = 9)
 #' plotJTK(as.numeric(result["expr2", 6:ncol(result)]), time, n = 1, periodHours = 12, lag = 8)
 #'
 #' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time)
 #' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24)
+#' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 27, lag = 25.5)
 #' plotJTK(as.numeric(result["expr3", 6:ncol(result)]), time, n = 1, periodHours = 24, lag = 12)
 plotJTK = function(expr, Time, n = 6,
                    periodHours = seq(1, 60, by = 0.5),
@@ -130,7 +136,9 @@ plotJTK = function(expr, Time, n = 6,
                       return(data.frame(Time = timeMany, pred, mi = mi))
                     })
   predData = do.call("rbind", predData)
-  predData$mi = factor(predData$mi, levels = unique(predData$mi))
+  predData$mi = factor(predData$mi, levels = unique(predData$mi),
+                       labels = paste0("period=", unique(predData$mi),
+                                       ", se=", round(re[as.character(unique(predData$mi))], 1)))
 
   ggplot(predData, aes(Time, expr))+
     geom_point(data = fitData)+
